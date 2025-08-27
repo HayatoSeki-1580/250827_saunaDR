@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サウナ「ととのう」の科学 | インタラクティブガイド</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Nordic Spa -->
+    <!-- Application Structure Plan: The application is structured as an interactive journey following the user's experience, rather than the report's linear chapters. It starts with a hero section defining "Totonou," then moves to the core interactive "Totonou Cycle" diagram. Clicking a stage in the cycle dynamically updates a central dashboard below, which visualizes physiological data (Chart.js), brain chemistry, and textual explanations. This is followed by sections on long-term benefits (infographic style) and safety guidelines. This user-centric flow was chosen to transform passive reading into an active exploration, making complex scientific concepts more intuitive and engaging by linking them directly to the familiar sauna process. -->
+    <!-- Visualization & Content Choices: Report Info: Physiological changes (Table 1) -> Goal: Compare metrics across stages -> Viz: Interactive Bar Chart -> Interaction: Updates on cycle stage click -> Justification: Dynamic comparison is more effective than a static table -> Library: Chart.js. Report Info: Neurotransmitters (Table 2) -> Goal: Inform about key chemicals -> Viz: Thematic card layout -> Interaction: Hover effects for engagement -> Justification: Visually separates complex information into digestible chunks -> Method: HTML/Tailwind. Report Info: Long-term benefits (Chapter 3) -> Goal: Summarize key health outcomes -> Viz: Icon-based infographic layout -> Interaction: Minimal, for clarity -> Justification: Icons and key stats are quickly scannable and memorable -> Method: HTML/Tailwind with Unicode characters. Report Info: Safety (Chapter 4) -> Goal: Provide actionable advice -> Viz: Clear Do's and Don'ts list -> Interaction: None, for directness -> Justification: Critical safety information should be unambiguous and easy to read -> Method: HTML/Tailwind. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #F8F6F1;
+            color: #3a3a3a;
+        }
+        .bg-nordic-main { background-color: #F8F6F1; }
+        .bg-nordic-card { background-color: #FFFFFF; }
+        .text-nordic-dark { color: #3a3a3a; }
+        .text-nordic-medium { color: #6b6b6b; }
+        .border-nordic-accent-hot { border-color: #E57373; }
+        .bg-nordic-accent-hot { background-color: #FFEBEE; }
+        .text-nordic-accent-hot { color: #C62828; }
+        .border-nordic-accent-cold { border-color: #64B5F6; }
+        .bg-nordic-accent-cold { background-color: #E3F2FD; }
+        .text-nordic-accent-cold { color: #1565C0; }
+        .border-nordic-accent-rest { border-color: #81C784; }
+        .bg-nordic-accent-rest { background-color: #E8F5E9; }
+        .text-nordic-accent-rest { color: #2E7D32; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 45vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .stage-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .stage-card.active {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover {
+            color: #1565C0;
+            border-bottom-color: #1565C0;
+        }
+    </style>
+</head>
+<body class="bg-nordic-main text-nordic-dark">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-nordic-dark">
+                サウナ「ととのう」の科学
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#cycle" class="nav-link">ととのうサイクル</a>
+                <a href="#science" class="nav-link">身体と脳の科学</a>
+                <a href="#benefits" class="nav-link">長期的効果</a>
+                <a href="#safety" class="nav-link">安全な入り方</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section id="hero" class="text-center mb-20">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">その「ととのい」、科学で解明します。</h1>
+            <p class="text-lg md:text-xl text-nordic-medium max-w-3xl mx-auto">
+                サウナ愛好家が語る「ととのう」という至福の感覚。それは単なる気分の問題ではありません。本ガイドでは、学術論文に基づき、その背後にある複雑な生理学的・神経学的メカニズムを対話的に探求します。
+            </p>
+        </section>
+
+        <section id="cycle" class="mb-20">
+            <h2 class="text-3xl font-bold text-center mb-2">「ととのう」への3ステップ</h2>
+            <p class="text-center text-nordic-medium mb-12">各ステージをクリックして、身体の中で何が起きているのか見てみましょう。</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div id="stage-hot" class="stage-card bg-nordic-card p-6 rounded-xl shadow-md border-b-4 border-nordic-accent-hot active" onclick="updateStage('hot')">
+                    <div class="flex items-center mb-4">
+                        <span class="text-4xl mr-4">🔥</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-nordic-accent-hot">1. サウナ浴 (高温)</h3>
+                            <p class="text-sm text-nordic-medium">交感神経の活性化</p>
+                        </div>
+                    </div>
+                    <p class="text-nordic-medium">高温環境が身体に「良いストレス」を与え、心拍数が増加。血流が促進され、交感神経が優位になります。</p>
+                </div>
+                <div id="stage-cold" class="stage-card bg-nordic-card p-6 rounded-xl shadow-md border-b-4 border-nordic-accent-cold" onclick="updateStage('cold')">
+                    <div class="flex items-center mb-4">
+                        <span class="text-4xl mr-4">💧</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-nordic-accent-cold">2. 冷水浴 (低温)</h3>
+                            <p class="text-sm text-nordic-medium">血管の急収縮</p>
+                        </div>
+                    </div>
+                    <p class="text-nordic-medium">急激な低温刺激で血管が収縮し、血圧が上昇。身体は熱を保持しようと、交感神経の活動をさらに高めます。</p>
+                </div>
+                <div id="stage-rest" class="stage-card bg-nordic-card p-6 rounded-xl shadow-md border-b-4 border-nordic-accent-rest" onclick="updateStage('rest')">
+                    <div class="flex items-center mb-4">
+                        <span class="text-4xl mr-4">🍃</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-nordic-accent-rest">3. 休憩 (外気浴)</h3>
+                            <p class="text-sm text-nordic-medium">副交感神経へ転換</p>
+                        </div>
+                    </div>
+                    <p class="text-nordic-medium">極度の緊張から一転、深いリラックス状態へ。自律神経のスイッチが切り替わり、「ととのう」感覚が訪れます。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="science" class="bg-nordic-card rounded-2xl p-6 md:p-10 shadow-lg mb-20">
+            <h2 class="text-3xl font-bold text-center mb-4">身体と脳のダイナミクス</h2>
+            <p id="science-intro" class="text-center text-nordic-medium mb-12 max-w-3xl mx-auto">
+                「ととのう」サイクルは、身体の様々なシステムに劇的な変化をもたらします。下のグラフやパネルは、選択されたステージ（現在は<span id="current-stage-text" class="font-bold text-nordic-accent-hot">サウナ浴</span>）であなたの身体と脳に何が起きているかを示しています。各ステージをクリックして変化を観察してください。
+            </p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-bold mb-4 text-center">生理学的指標の変化</h3>
+                    <div class="chart-container">
+                        <canvas id="physiologyChart"></canvas>
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-bold mb-4 text-center">脳内で起こる化学反応</h3>
+                    <div id="brain-info" class="space-y-4">
+                        <div class="p-4 rounded-lg bg-nordic-accent-hot">
+                            <h4 class="font-bold text-nordic-accent-hot">🧠 思考の強制停止とリセット</h4>
+                            <p class="text-nordic-medium text-sm">強烈な熱気が日常の思考を一時的に停止させ、脳を休息状態に導きます。増加した血流が脳に酸素を供給し、思考の「モヤモヤ」を洗い流す効果も期待できます。</p>
+                        </div>
+                        <div class="p-4 rounded-lg bg-gray-100">
+                            <h4 class="font-bold">✨ 快楽物質の分泌</h4>
+                            <p class="text-nordic-medium text-sm">高温ストレスへの反応として、脳内でβ-エンドルフィンやドーパミンが分泌される可能性が指摘されています。これらは多幸感や気分の高揚をもたらします。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="benefits" class="mb-20">
+            <h2 class="text-3xl font-bold text-center mb-4">サウナ習慣がもたらす長期的効果</h2>
+            <p class="text-center text-nordic-medium mb-12 max-w-3xl mx-auto">
+                定期的なサウナ利用は、短期的なリフレッシュだけでなく、長期的な健康にも貢献する可能性が、フィンランドの大規模研究などで示唆されています。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-nordic-card p-6 rounded-xl shadow-md text-center">
+                    <div class="text-5xl mb-4">❤️</div>
+                    <h3 class="text-xl font-bold mb-2">心血管系の健康</h3>
+                    <p class="text-nordic-medium">血管の拡張と収縮を繰り返す「血管のトレーニング」により、高血圧や動脈硬化のリスクを低減させる効果が期待されます。</p>
+                </div>
+                <div class="bg-nordic-card p-6 rounded-xl shadow-md text-center">
+                    <div class="text-5xl mb-4">🧠</div>
+                    <h3 class="text-xl font-bold mb-2">認知機能の維持</h3>
+                    <p class="text-nordic-medium">脳血流の改善や、神経細胞の成長を促す因子の増加により、認知症やアルツハイマー病のリスクが低下する可能性が報告されています。</p>
+                </div>
+                <div class="bg-nordic-card p-6 rounded-xl shadow-md text-center">
+                    <div class="text-5xl mb-4">💪</div>
+                    <h3 class="text-xl font-bold mb-2">細胞の修復と保護</h3>
+                    <p class="text-nordic-medium">高温ストレスで生成されるヒートショックプロテイン(HSP)が、損傷した細胞を修復し、筋力低下の抑制などに寄与します。</p>
+                </div>
+            </div>
+            <p class="text-center text-xs text-nordic-medium mt-8">*これらの効果は相関関係を示すものであり、直接的な因果関係を保証するものではありません。</p>
+        </section>
+
+        <section id="safety" class="bg-white rounded-2xl p-6 md:p-10 shadow-lg">
+            <h2 class="text-3xl font-bold text-center mb-4">「ととのう」ための安全ガイド</h2>
+            <p class="text-center text-nordic-medium mb-12 max-w-3xl mx-auto">
+                サウナは身体に強い負荷をかける行為です。科学的知見に基づき、リスクを理解し、安全に最大限の効果を得るためのポイントを紹介します。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-lg">
+                    <h3 class="text-2xl font-bold mb-4 text-green-800">✅ Do's / 推奨されること</h3>
+                    <ul class="space-y-3 list-disc list-inside text-nordic-medium">
+                        <li><strong>こまめな水分補給:</strong> サウナ前後、休憩中に電解質を含む飲料で水分を補給しましょう。</li>
+                        <li><strong>無理のないサイクル:</strong> 「サウナ5-10分、水風呂1分、休憩10分」は目安。自分が「気持ちいい」と感じる範囲で行いましょう。</li>
+                        <li><strong>体調の良い日に:</strong> 心身のコンディションが良い時に最大限の効果を発揮します。疲労困憊の時は避けましょう。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+                    <h3 class="text-2xl font-bold mb-4 text-red-800">❌ Don'ts / 避けるべきこと</h3>
+                    <ul class="space-y-3 list-disc list-inside text-nordic-medium">
+                        <li><strong>飲酒後の利用:</strong> 血圧の異常や不整脈のリスクが著しく高まります。絶対にやめましょう。</li>
+                        <li><strong>急激な温度変化:</strong> 高齢者や持病のある方は特に注意。「ヒートショック」による失神や転倒の危険があります。</li>
+                        <li><strong>我慢比べ:</strong> 長時間サウナに入り続けることは脱水や熱中症のリスクを高めるだけで、効果的ではありません。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white mt-20 border-t">
+        <div class="container mx-auto px-6 py-8 text-center text-nordic-medium">
+            <p>このページは、サウナに関する学術論文の情報を基に作成されたインタラクティブな教育コンテンツです。</p>
+            <p class="text-sm mt-2">医学的な助言を与えるものではありません。健康上の懸念がある場合は、専門の医療機関にご相談ください。</p>
+        </div>
+    </footer>
+
+    <script>
+        const physiologyData = {
+            hot: {
+                label: 'サウナ浴 (高温)',
+                values: [10, 5, 10],
+                borderColor: '#E57373',
+                backgroundColor: 'rgba(229, 115, 115, 0.2)',
+                textColor: 'text-nordic-accent-hot',
+                bgColor: 'bg-nordic-accent-hot',
+                intro: '高温環境は身体への「ストレス」として作用し、交感神経系を活性化させます。心拍数と血流が増加し、身体は活動的な状態になります。',
+                brainHTML: `
+                    <div class="p-4 rounded-lg bg-nordic-accent-hot">
+                        <h4 class="font-bold text-nordic-accent-hot">🧠 思考の強制停止とリセット</h4>
+                        <p class="text-nordic-medium text-sm">強烈な熱気が日常の思考を一時的に停止させ、脳を休息状態に導きます。増加した血流が脳に酸素を供給し、思考の「モヤモヤ」を洗い流す効果も期待できます。</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-gray-100">
+                        <h4 class="font-bold">✨ 快楽物質の分泌</h4>
+                        <p class="text-nordic-medium text-sm">高温ストレスへの反応として、脳内でβ-エンドルフィンやドーパミンが分泌される可能性が指摘されています。これらは多幸感や気分の高揚をもたらします。</p>
+                    </div>
+                `
+            },
+            cold: {
+                label: '冷水浴 (低温)',
+                values: [8, 10, 12],
+                borderColor: '#64B5F6',
+                backgroundColor: 'rgba(100, 181, 246, 0.2)',
+                textColor: 'text-nordic-accent-cold',
+                bgColor: 'bg-nordic-accent-cold',
+                intro: '急激な低温刺激は、身体にさらなるストレスを与えます。血管は収縮し、血圧は急上昇。交感神経の活動はピークに達します。',
+                brainHTML: `
+                    <div class="p-4 rounded-lg bg-nordic-accent-cold">
+                        <h4 class="font-bold text-nordic-accent-cold">⚡️ 覚醒と集中</h4>
+                        <p class="text-nordic-medium text-sm">強烈な寒冷刺激は「闘争か逃走か」反応を引き起こし、アドレナリンやノルアドレナリンの分泌を促します。これにより、一時的に覚醒レベルと集中力が高まります。</p>
+                    </div>
+                     <div class="p-4 rounded-lg bg-gray-100">
+                        <h4 class="font-bold">🧊 血管のトレーニング</h4>
+                        <p class="text-nordic-medium text-sm">サウナ浴での拡張から一転、血管が急激に収縮します。このプロセスが血管の弾力性を鍛えると考えられています。</p>
+                    </div>
+                `
+            },
+            rest: {
+                label: '休憩 (外気浴)',
+                values: [2, 2, -10],
+                borderColor: '#81C784',
+                backgroundColor: 'rgba(129, 199, 132, 0.2)',
+                textColor: 'text-nordic-accent-rest',
+                bgColor: 'bg-nordic-accent-rest',
+                intro: 'ストレスのピークから解放され、身体は一気にリラックスモードへ。交感神経から副交感神経へと自律神経のスイッチが劇的に切り替わり、深い静寂と多幸感、すなわち「ととのう」状態が訪れます。',
+                brainHTML: `
+                    <div class="p-4 rounded-lg bg-nordic-accent-rest">
+                        <h4 class="font-bold text-nordic-accent-rest">🧘 脳波の変調とリラックス</h4>
+                        <p class="text-nordic-medium text-sm">研究では、休憩時にリラックス状態を示すアルファ波や、認知効率化に関連するシータ波の増加が観測されています。これは精神的な明晰さを伴うリラックス状態を裏付けます。</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-gray-100">
+                        <h4 class="font-bold">😌 自律神経のスイッチング</h4>
+                        <p class="text-nordic-medium text-sm">この段階の主役は、交感神経の緊張から副交感神経の弛緩への急激な移行です。この「反動」こそが、「ととのう」感覚の核心的なメカニズムです。</p>
+                    </div>
+                `
+            }
+        };
+
+        let currentStage = 'hot';
+        let physiologyChart;
+
+        const ctx = document.getElementById('physiologyChart').getContext('2d');
+
+        function createChart() {
+            physiologyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['心拍数', '血圧', '交感神経活動'],
+                    datasets: [{
+                        label: physiologyData[currentStage].label,
+                        data: physiologyData[currentStage].values,
+                        backgroundColor: physiologyData[currentStage].backgroundColor,
+                        borderColor: physiologyData[currentStage].borderColor,
+                        borderWidth: 2,
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    if (index === 0) return '低下';
+                                    if (index === Math.floor(values.length / 2)) return '平常';
+                                    if (index === values.length - 1) return '上昇';
+                                    return '';
+                                }
+                            },
+                            grid: {
+                                color: '#e0e0e0'
+                            }
+                        },
+                        x: {
+                           grid: {
+                                display: false
+                           }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        title: {
+                            display: true,
+                            text: '平常時からの変化レベル',
+                            padding: {
+                                bottom: 20
+                            },
+                            font: {
+                                size: 14,
+                                weight: 'normal'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 800,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        function updateChart(stage) {
+            const data = physiologyData[stage];
+            physiologyChart.data.datasets[0].data = data.values;
+            physiologyChart.data.datasets[0].backgroundColor = data.backgroundColor;
+            physiologyChart.data.datasets[0].borderColor = data.borderColor;
+            physiologyChart.data.datasets[0].label = data.label;
+            physiologyChart.update();
+        }
+
+        function updateStage(stage) {
+            if (currentStage === stage) return;
+            currentStage = stage;
+
+            document.querySelectorAll('.stage-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(`stage-${stage}`).classList.add('active');
+
+            updateChart(stage);
+            
+            const stageInfo = physiologyData[stage];
+            
+            const scienceIntro = document.getElementById('science-intro');
+            const currentStageText = document.getElementById('current-stage-text');
+            
+            currentStageText.textContent = stageInfo.label;
+            currentStageText.className = `font-bold ${stageInfo.textColor}`;
+            
+            const brainInfo = document.getElementById('brain-info');
+            brainInfo.innerHTML = stageInfo.brainHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createChart();
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
